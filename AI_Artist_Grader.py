@@ -13,62 +13,27 @@ def load_class_mapping(yaml_file):
         yaml_content = yaml.safe_load(file)
     return {str(cls): idx for idx, cls in enumerate(yaml_content['classes'])}
 
+from torchvision.datasets import ImageFolder
 
-# Custom dataset for training
-class CustomTrainDataset(Dataset):
-    def __init__(self, annotations_file, img_dir, class_yaml, transform=None):
-        self.img_labels = [line.strip().split(',') for line in open(annotations_file)]
-        self.img_dir = img_dir
-        self.transform = transform
-        self.label_to_index = load_class_mapping(class_yaml) 
+class CustomDataset(ImageFolder):
+    def __init__(self, root, transform=None):
+        super().__init__(root, transform)
 
-    def __len__(self):
-        return len(self.img_labels)
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+])
 
-    def __getitem__(self, idx):
-        img_path, label_str = self.img_labels[idx]
-        img_path = os.path.join(self.img_dir, img_path)
-        image = Image.open(img_path).convert('RGB')
-        label = self.label_to_index[label_str]
-        if self.transform:
-            image = self.transform(image)
-        return image, label
+current_dir = os.getcwd()
+root_dir = f'{current_dir}/eyes_dataset'
 
-# Custom dataset for testing
-class CustomTestDataset(Dataset):
-    def __init__(self, annotations_file, img_dir, transform=None):
-        self.img_paths = [line.strip() for line in open(annotations_file)]
-        self.img_dir = img_dir
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.img_paths)
-
-    def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.img_paths[idx])
-        image = Image.open(img_path).convert('RGB')
-        if self.transform:
-            image = self.transform(image)
-        return image, self.img_paths[idx] 
-
-# Initialize datasets and loaders
-train_dataset = CustomTrainDataset(
-    annotations_file=os.path.expanduser('~\\downloads\\bev_classification\\datasets\\train.txt'),
-    img_dir=os.path.expanduser('~\\downloads\\bev_classification\\'),
-    class_yaml=os.path.expanduser('~\\downloads\\bev_classification\\names.yaml'),
-    transform=transform
-)
+train_dataset = CustomDataset(root_dir, transform=transform)
+train_loader = DataLoader(dataset=train_dataset, batch_size=1, shuffle=True)
 
 total_training_examples = 14 * 20
 batch_size = 1
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
-test_dataset = CustomTestDataset(
-    annotations_file=os.path.expanduser('~\\downloads\\bev_classification\\datasets\\test_edited.txt'),
-    img_dir=os.path.expanduser('~\\downloads\\bev_classification\\'),
-)
-
-test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
 # Initialize the model
 model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
