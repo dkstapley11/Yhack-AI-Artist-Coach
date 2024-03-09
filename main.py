@@ -73,7 +73,7 @@ square_rect = pygame.Rect(screen_width - square_size - 3, 3, square_size, square
 # Clock for controlling frame rate
 clock = pygame.time.Clock()
 
-# Main loop
+# Main loop 
 running = True
 mouse_pos = ()
 prev_pos = ()
@@ -151,8 +151,8 @@ xLines = ((ssr[0], ssr[1]), (ssr[0] + ssr[2], ssr[1] + ssr[3])), ((ssr[0] + ssr[
 font24px = pygame.font.Font("Oswald-Medium.ttf", 24)
 font32px = pygame.font.Font("Oswald-Medium.ttf", 32)
 
-
-
+logo = pygame.image.load("logo.jpeg")
+logo = pygame.transform.scale_by(logo, 5/16)
 
 class Button:
     def __init__(self, rect, inColor, outColor, text, w=4):
@@ -226,6 +226,7 @@ def runProgram(targetClass):
     actScore = None
     try:
         actScore = float(rating) * 100
+        actScore = 100 - actScore
         # TODO: APPLY ACTSCORE TRANFORMATIONS
         global score
         score = font32px.render(f"Score: {actScore:.2f}", True, WHITE)
@@ -348,6 +349,7 @@ while running:
     # Blit the surface onto the screen
     screen.blit(box, surface_rect)
     screen.blit(imgs[imgindex], img_rect)
+    screen.blit(logo, (screen_width // 2 - logo.get_width() // 2, 10))
 
     i = 0
     for img in smallImgs:
