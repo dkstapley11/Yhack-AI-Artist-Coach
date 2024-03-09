@@ -58,7 +58,7 @@ def main():
     top_class_name = class_names[top_class_idx]
     top_class_prob = sorted_probs[0].item()
 
-    ground_truth_idx = sys.argv[1]
+    ground_truth_idx = int(sys.argv[1])
     ground_truth_name = class_names[ground_truth_idx]
 
     accuracy = 100.0 * top_class_prob if top_class_idx == ground_truth_idx else 0.0
