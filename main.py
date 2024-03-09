@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 import sys
 
 # Initialize Pygame
@@ -40,6 +40,29 @@ clock = pygame.time.Clock()
 # Main loop
 running = True
 mouse_pos = ()
+prev_pos = ()
+
+def draw_smooth_line(surface, prev_pos, actual_pos):
+    # Calculate the distance between previous and actual positions
+    distance = math.sqrt((actual_pos[0] - prev_pos[0]) ** 2 + (actual_pos[1] - prev_pos[1]) ** 2)
+    
+    # If the distance is less than or equal to 6, just draw a circle at the actual position
+    k = 3.5
+    if distance <= 6 // k:
+        pygame.draw.circle(surface, (0, 0, 0), actual_pos, 3)
+    else:
+        # Calculate the number of points needed to fill the line smoothly
+        num_points = math.ceil(k * (distance / 6))
+        
+        # Draw circles at intermediate points
+        for i in range(1, num_points):
+            # Calculate intermediate positions
+            x = prev_pos[0] + (actual_pos[0] - prev_pos[0]) * i / num_points
+            y = prev_pos[1] + (actual_pos[1] - prev_pos[1]) * i / num_points
+            pygame.draw.circle(surface, (0, 0, 0), (int(x), int(y)), 3)
+    
+    # Draw a circle at the actual position
+    pygame.draw.circle(surface, (0, 0, 0), actual_pos, 3)
 
 while running:
     # Event handling
@@ -51,6 +74,8 @@ while running:
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_SPACE:
                 box.fill(WHITE)
+            elif event.key == pygame.K_r:
+                pygame.image.save(box,'output.png')
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # If mouse button is down, set mouse_pos relative to the center of the surface
             mouse_pos = pygame.mouse.get_pos()
@@ -62,6 +87,7 @@ while running:
         elif event.type == pygame.MOUSEBUTTONUP:
             # If mouse button is up, reset mouse_pos
             mouse_pos = ()
+            prev_pos = ()
         elif event.type == pygame.MOUSEMOTION:
             # Update mouse_pos while dragging the mouse
             if pygame.mouse.get_pressed()[0]:  # Check if left mouse button is pressed
@@ -77,7 +103,13 @@ while running:
     if mouse_pos:
         relPos = surface_rect[0], surface_rect[1]
         actPos = mouse_pos[0] - relPos[0], mouse_pos[1] - relPos[1]
-        pygame.draw.circle(box, BLACK, actPos, 3)
+        # pygame.draw.circle(box, BLACK, actPos, 3)
+        if not prev_pos:
+            prev_pos = tuple(actPos)
+
+        draw_smooth_line(box, prev_pos, actPos)
+
+        prev_pos = tuple(actPos)
 
     # Blit the surface onto the screen
     screen.blit(box, surface_rect)
