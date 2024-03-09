@@ -6,14 +6,9 @@ import torch.nn as nn
 import torch.optim as optim
 import os
 from PIL import Image
-import yaml
-
-def load_class_mapping(yaml_file):
-    with open(yaml_file, 'r') as file:
-        yaml_content = yaml.safe_load(file)
-    return {str(cls): idx for idx, cls in enumerate(yaml_content['classes'])}
-
 from torchvision.datasets import ImageFolder
+
+
 
 class CustomDataset(ImageFolder):
     def __init__(self, root, transform=None):
@@ -28,7 +23,6 @@ current_dir = os.getcwd()
 root_dir = f'{current_dir}/eyes_dataset'
 
 train_dataset = CustomDataset(root_dir, transform=transform)
-train_loader = DataLoader(dataset=train_dataset, batch_size=1, shuffle=True)
 
 total_training_examples = 14 * 20
 batch_size = 1
@@ -49,11 +43,11 @@ model.to(device)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Define the checkpoint file path
 checkpoint_dir = os.getcwd()
-checkpoint_path = os.path.join(checkpoint_dir, 'model_checkpoint.pth')
+checkpoint_path = os.path.join(checkpoint_dir, 'model_state.pth')
 
 # Load saved checkpoints
 if os.path.exists(checkpoint_path):
@@ -64,8 +58,8 @@ if os.path.exists(checkpoint_path):
 else:
     start_epoch = 0
 
-# Training loop
-num_epochs = 10
+# training loop
+num_epochs = 100
 for epoch in range(start_epoch, num_epochs):
     model.train()
     running_loss = 0.0
@@ -85,31 +79,3 @@ for epoch in range(start_epoch, num_epochs):
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
     }, checkpoint_path)
-
-# Prediction generation after training
-model.eval()  # Set the model to evaluation mode
-top1_predictions = []
-top5_predictions = []
-
-with torch.no_grad():
-    for images in test_loader:
-        images = images.to(device)
-        outputs = model(images)
-
-        # Top-1 predictions
-        _, top1_pred = outputs.topk(1, 1, True, True)
-        top1_predictions.extend(top1_pred.t().tolist()[0])
-
-        # Top-5 predictions
-        _, top5_pred = outputs.topk(5, 1, True, True)
-        top5_predictions.extend(top5_pred.t().tolist())
-
-# Save the top-1 predictions
-with open('top1_predictions.txt', 'w') as f:
-    for pred in top1_predictions:
-        f.write(f'{pred}\n')
-
-# Save the top-5 predictions
-with open('top5_predictions.txt', 'w') as f:
-    for preds in top5_predictions:
-        f.write(' '.join(map(str, preds)) + '\n')
