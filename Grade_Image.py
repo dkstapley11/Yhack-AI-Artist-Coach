@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.optim as optim
 import os
 from PIL import Image
-import yaml
 
 
 transform = transforms.Compose([
@@ -42,6 +41,8 @@ def main():
     with torch.no_grad():
         image_path = image_path.to(device)
         output = model(image_path)
+        _, all_pred = outputs.topk(14, 1, True, True)
+        all_pred = all_pred.tolist()
 
 
 
