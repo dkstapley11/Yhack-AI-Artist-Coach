@@ -34,7 +34,7 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    checkpoint_path = 'model_checkpoint.pth'
+    checkpoint_path = 'model_state.pth'
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -42,7 +42,8 @@ def main():
     with torch.no_grad():
         image_path = image_path.to(device)
         output = model(image_path)
-        
+
+
 
     # with torch.no_grad():
     #     for images, paths in test_loader:
