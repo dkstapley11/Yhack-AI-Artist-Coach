@@ -196,6 +196,17 @@ radius = 3
 
 import time
 
+def scale_output(x):
+    '''x = math.pow(x, 3) * 0.01 + math.pow(x, 2) * -1.21 + 96.21 * x - 2470
+    k = 0
+    if x < k:
+        x = k
+    elif x > 100 + k:
+        x = 100 + k
+    
+    x -= k'''
+    return x
+
 def runProgram(targetClass):
     pygame.image.save(box,'output.png')
     reset.update(True)
@@ -227,7 +238,7 @@ def runProgram(targetClass):
     try:
         actScore = float(rating) * 100
         actScore = 100 - actScore
-        # TODO: APPLY ACTSCORE TRANFORMATIONS
+        actScore = scale_output(actScore)
         global score
         score = font32px.render(f"Score: {actScore:.2f}", True, WHITE)
     except Exception as e:
