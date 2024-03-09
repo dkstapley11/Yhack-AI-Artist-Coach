@@ -1,20 +1,19 @@
 import torch
 from torchvision import transforms, models
 from torchvision.models.efficientnet import EfficientNet_B0_Weights
-from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
-import torch.optim as optim
 import os
 from PIL import Image
+from load_classes import main
 
 
 transform = transforms.Compose([
+    lambda x: x.convert("RGB"),
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
 ])
 
-image_path = f'{os.getcwd()}/output.png'
-
+class_names = main()
 
 
 def main():
@@ -24,6 +23,13 @@ def main():
 
     # Initialize the model
     model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    image_path = f'{os.getcwd()}/output.png'
+    image = Image.open(image_path)
+    image_tensor = transform(image).unsqueeze(0).to(device)
     
 
     num_ftrs = model.classifier[-1].in_features
@@ -38,24 +44,25 @@ def main():
 
     model.load_state_dict(checkpoint['model_state_dict'])
 
+    model.eval()
+
     with torch.no_grad():
-        image_path = image_path.to(device)
-        output = model(image_path)
-        _, all_pred = outputs.topk(14, 1, True, True)
-        all_pred = all_pred.tolist()
+        output = model(image_tensor)
+        probabilities = torch.softmax(output, dim=1)[0]
+        sorted_probs, sorted_indices = torch.sort(probabilities, descending=True)
+    
+    top_class_idx = sorted_indices[0].item()
+    top_class_name = class_names[top_class_idx]
+    top_class_prob = sorted_probs[0].item()
 
+    ground_truth_idx = 5
+    ground_truth_name = class_names[ground_truth_idx]
 
+    accuracy = 100.0 * top_class_prob if top_class_idx == ground_truth_idx else 0.0
 
-    # with torch.no_grad():
-    #     for images, paths in test_loader:
-    #         images = images.to(device)
-    #         outputs = model(images)
+    print(f"{top_class_name} is the most likely class for what you drew!")
+    print(f"You were {accuracy:.2f}% accurate compared to the ground truth class {ground_truth_name}.")
 
-    #         _, top1_pred = outputs.topk(1, 1, True, True)
-    #         _, top5_pred = outputs.topk(5, 1, True, True)
-            
-    #         top1_pred = top1_pred.squeeze().tolist()
-    #         top5_pred = top5_pred.tolist()
             
 
 if __name__ == '__main__':
