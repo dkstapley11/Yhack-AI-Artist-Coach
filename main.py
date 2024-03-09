@@ -52,7 +52,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 
 # Create fullscreen window
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((1366, 768))
 screen_width = screen.get_width()
 screen_height = screen.get_height()
 
@@ -184,6 +184,13 @@ class Button:
     
     def get_pressed(self, pos):
         return inRect(self.rect, pos)
+    
+def undo_button():
+    global prev_surfs, box
+    if len(prev_surfs) > 1:
+        prev_surfs.pop(-1)
+        box = prev_surfs[-1]
+
 
 resetRect = (surface_rect[0], surface_rect[1] + surface_rect[3] + padding, 100, 40)
 reset = Button(resetRect, (120, 120, 255), (50, 50, 255), "RESET")
@@ -193,6 +200,8 @@ run = Button(runRect, (255, 120, 120), (255, 45, 45), "RUN")
 running = font32px.render("Processing...", True, WHITE)
 score = None
 radius = 3
+undo = Button((img_rect[0], img_rect[1] + img_rect[3] + padding, 40, 40), (160, 160, 160), (100, 100, 100), "Z")
+undo.set_action(undo_button)
 
 import time
 
@@ -269,6 +278,9 @@ def reduce():
 minus.set_action(reduce)
 plus.set_action(add)
 
+import copy
+prev_surfs = [box.copy()]
+
 while running:
     # Event handling
     for event in pygame.event.get():
@@ -289,6 +301,10 @@ while running:
                 radius -= 1
                 if radius < 1:
                     radius = 1
+            elif event.key == pygame.K_z:
+                if len(prev_surfs) > 1:
+                    prev_surfs.pop(-1)
+                    box = prev_surfs[-1]
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # If mouse button is down, set mouse_pos relative to the center of the surface
@@ -310,11 +326,14 @@ while running:
 
                     elif reset.get_pressed(mouse_pos):
                         reset.do()
+                        prev_surfs = [box.copy()]
                     
                     elif plus.get_pressed(mouse_pos):
                         plus.do()
                     elif minus.get_pressed(mouse_pos):
                         minus.do()
+                    elif undo.get_pressed(mouse_pos):
+                        undo.do()
 
         elif event.type == pygame.MOUSEWHEEL:
             imgindex -= event.y
@@ -328,6 +347,11 @@ while running:
             # If mouse button is up, reset mouse_pos
             mouse_pos = ()
             prev_pos = ()
+            if inRect(surface_rect, pygame.mouse.get_pos()):
+                prev_surfs.append(box.copy())
+                if len(prev_surfs) > 20:
+                    prev_surfs.pop(0)
+
         elif event.type == pygame.MOUSEMOTION:
             # Update mouse_pos while dragging the mouse
             if pygame.mouse.get_pressed()[0]:  # Check if left mouse button is pressed
@@ -373,6 +397,7 @@ while running:
     run.update()
     minus.update()
     plus.update()
+    undo.update()
 
     if score:
         pos = surface_rect[0] + surface_rect[2] // 2 - score.get_width() / 2, surface_rect[1] + surface_rect[3] + padding

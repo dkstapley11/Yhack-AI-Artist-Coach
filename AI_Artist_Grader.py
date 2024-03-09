@@ -24,7 +24,7 @@ root_dir = f'{current_dir}/eyes_dataset'
 
 train_dataset = CustomDataset(root_dir, transform=transform)
 
-total_training_examples = 14 * 20
+total_training_examples = 14 * 15
 batch_size = 1
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -59,7 +59,7 @@ else:
     start_epoch = 0
 
 # training loop
-num_epochs = 100
+num_epochs = 10
 for epoch in range(start_epoch, num_epochs):
     model.train()
     running_loss = 0.0

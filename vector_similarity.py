@@ -42,3 +42,6 @@ try:
         f.write(str(rating))
 except:
     print("FAIL")
+
+rating = f"{100 - float(rating) * 100:.2f}"
+print(rating)
