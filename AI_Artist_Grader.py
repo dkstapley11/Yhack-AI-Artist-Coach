@@ -59,22 +59,24 @@ train_dataset = CustomTrainDataset(
     transform=transform
 )
 
-train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
+total_training_examples = 14 * 20
+batch_size = 1
+train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
 test_dataset = CustomTestDataset(
     annotations_file=os.path.expanduser('~\\downloads\\bev_classification\\datasets\\test_edited.txt'),
     img_dir=os.path.expanduser('~\\downloads\\bev_classification\\'),
-    transform=transform
 )
 
-test_loader = DataLoader(dataset=test_dataset, batch_size=32, shuffle=False)
+test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
 # Initialize the model
 model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
 
 # Update the number of classes in the classifier
-num_classes = 99
-model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+num_classes = 14
+num_ftrs = model.classifier[-1].in_features
+model.classifier[-1] = nn.Linear(num_ftrs, 14)
 
 # Move model to GPU if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -82,7 +84,7 @@ model.to(device)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # Define the checkpoint file path
 checkpoint_dir = os.getcwd()
