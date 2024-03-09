@@ -113,8 +113,8 @@ def inRect(rect, coord):
 ssr = modRect(square_rect, 3)
 ssr = ssr[0], ssr[1], ssr[2] - 1, ssr[3] - 1
 xLines = ((ssr[0], ssr[1]), (ssr[0] + ssr[2], ssr[1] + ssr[3])), ((ssr[0] + ssr[2], ssr[1]), (ssr[0], ssr[1] + ssr[3]))
-font14px = pygame.font.Font("freesansbold.ttf", 14)
-font24px = pygame.font.Font("freesansbold.ttf", 24)
+# font14px = pygame.font.Font("freesandbold.ttf", 14)
+font24px = pygame.font.Font("Oswald-Medium.ttf", 24)
 
 
 
@@ -136,8 +136,11 @@ class Button:
     def set_action(self, action):
         self.action = action
     
-    def do(self):
-        self.action()
+    def do(self, args=None):
+        if args:
+            self.action(*args)
+        else:
+            self.action()
     
     def get_pressed(self, pos):
         return inRect(self.rect, pos)
@@ -150,9 +153,9 @@ run = Button(runRect, (255, 120, 120), (255, 45, 45), "RUN")
 
 import subprocess
 
-def runProgram():
+def runProgram(targetClass):
     pygame.image.save(box,'output.png')
-    subprocess.call(["python", "Grade_Image.py"])
+    subprocess.call(["python", "Grade_Image.py", str(targetClass)])
 
 def clearImg():
     box.fill(WHITE)
@@ -189,7 +192,7 @@ while running:
                         i += 1
                 
                     if run.get_pressed(mouse_pos):
-                        run.do()
+                        run.do(imgindex)
                     elif reset.get_pressed(mouse_pos):
                         reset.do()
 
