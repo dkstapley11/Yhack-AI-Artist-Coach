@@ -13,12 +13,6 @@ def load_class_mapping(yaml_file):
         yaml_content = yaml.safe_load(file)
     return {str(cls): idx for idx, cls in enumerate(yaml_content['classes'])}
 
-# Define transformations
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
 
 # Custom dataset for training
 class CustomTrainDataset(Dataset):
