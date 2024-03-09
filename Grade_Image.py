@@ -16,7 +16,8 @@ transform = transforms.Compose([
 
 class_names = main()
 
-image_path = f'{os.getcwd()}/output.png'
+# image_path = f'{os.getcwd()}/output.png'
+image_path = f'{os.getcwd()}/ui_images/12.png'
 
 
 def main():
@@ -61,10 +62,18 @@ def main():
     ground_truth_idx = int(sys.argv[1])
     ground_truth_name = class_names[ground_truth_idx]
 
-    accuracy = 100.0 * top_class_prob if top_class_idx == ground_truth_idx else 0.0
+    for idx, prob in zip(sorted_indices, sorted_probs):
+        class_idx = idx.item()
+        class_name = class_names[class_idx]
+        confidence = prob.item() * 100.0  # Convert to percentage
+
+        # Check if this class is the ground truth
+        is_ground_truth = class_idx == ground_truth_idx
+        ground_truth_marker = "(Ground Truth)" if is_ground_truth else ""
+
+        print(f"Class: {class_name} - Confidence: {confidence:.2f}% {ground_truth_marker}")
 
     print(f"{top_class_name} is the most likely class for what you drew!")
-    print(f"You were {accuracy:.2f}% accurate compared to the ground truth class {ground_truth_name}.")
 
             
 
