@@ -192,7 +192,7 @@ while running:
                         i += 1
                 
                     if run.get_pressed(mouse_pos):
-                        run.do(imgindex)
+                        run.do([imgindex])
                     elif reset.get_pressed(mouse_pos):
                         reset.do()
 
