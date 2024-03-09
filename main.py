@@ -26,8 +26,10 @@ screen_height = screen.get_height()
 box = pygame.Surface(surface_size)
 box.fill(WHITE)
 
+padding = 20
 # Center surface on the screen
-surface_rect = box.get_rect(center=screen.get_rect().center)
+surface_rect = (padding * 2 + 512, screen_height // 2 - 512 // 2, 512, 512)
+img_rect = (padding, screen_height // 2 - 512 // 2, 512, 512)
 screen_rect = pygame.Rect((0, 0), (screen_width, screen_height))
 
 # Set the dimensions and psosition of the exit button
@@ -41,6 +43,43 @@ clock = pygame.time.Clock()
 running = True
 mouse_pos = ()
 prev_pos = ()
+
+imgs = []
+
+for i in range(14):
+    path = "ui_images/"
+    j = str(i)
+    if len(j) == 1:
+        j = "0" + j
+    path += j + ".png"
+    imgs.append(pygame.image.load(path))
+
+smallImgs = []
+sizek = 90
+
+for img in imgs:
+    smallImgs.append(pygame.transform.scale(img, (sizek, sizek)))
+
+smallPadding = 10
+megaPadding = 50
+
+basey = screen_height // 2 - (sizek * 7 + smallPadding * 6) // 2
+
+ys = [basey + (smallPadding + sizek) * y for y in range(7)]
+xs = screen_width - megaPadding - smallPadding - sizek * 2
+xs = [xs, xs + smallPadding + sizek]
+
+slots = [[(x, y) for x in xs] for y in ys]
+flattened = []
+rects = []
+
+for slot in slots:
+    flattened += slot
+
+for flat in flattened:
+    rects.append((flat[0], flat[1], sizek, sizek))
+
+imgindex = 0
 
 def draw_smooth_line(surface, prev_pos, actual_pos):
     # Calculate the distance between previous and actual positions
@@ -64,6 +103,13 @@ def draw_smooth_line(surface, prev_pos, actual_pos):
     # Draw a circle at the actual position
     pygame.draw.circle(surface, (0, 0, 0), actual_pos, 3)
 
+def modRect(rect, x):
+    return rect[0] + x, rect[1] + x, rect[2] - x * 2, rect[3] - x * 2
+
+ssr = modRect(square_rect, 3)
+ssr = ssr[0], ssr[1], ssr[2] - 1, ssr[3] - 1
+xLines = ((ssr[0], ssr[1]), (ssr[0] + ssr[2], ssr[1] + ssr[3])), ((ssr[0] + ssr[2], ssr[1]), (ssr[0], ssr[1] + ssr[3]))
+
 while running:
     # Event handling
     for event in pygame.event.get():
@@ -77,13 +123,20 @@ while running:
             elif event.key == pygame.K_r:
                 pygame.image.save(box,'output.png')
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # If mouse button is down, set mouse_pos relative to the center of the surface
-            mouse_pos = pygame.mouse.get_pos()
-            # Check if the mouse click occurs within the boundaries of the red square
-            if screen_width - square_size <= mouse_pos[0] <= screen_width and 0 <= mouse_pos[1] <= square_size:
-                running = False  # Exit the program
-                pygame.quit()
-                sys.exit()
+            if event.button == 1:
+                # If mouse button is down, set mouse_pos relative to the center of the surface
+                mouse_pos = pygame.mouse.get_pos()
+                # Check if the mouse click occurs within the boundaries of the red square
+                if screen_width - square_size <= mouse_pos[0] <= screen_width and 0 <= mouse_pos[1] <= square_size:
+                    running = False  # Exit the program
+                    pygame.quit()
+                    sys.exit()
+        elif event.type == pygame.MOUSEWHEEL:
+            imgindex -= event.y
+            if imgindex < 0:
+                imgindex += 14
+            elif imgindex > 13:
+                imgindex -= 14
         elif event.type == pygame.MOUSEBUTTONUP:
             # If mouse button is up, reset mouse_pos
             mouse_pos = ()
@@ -99,6 +152,9 @@ while running:
 
     # Draw the small red square
     pygame.draw.rect(screen, RED, square_rect)
+    for line in xLines:
+        pygame.draw.line(screen, BLACK, line[0], line[1], 4)
+    
 
     if mouse_pos:
         relPos = surface_rect[0], surface_rect[1]
@@ -113,6 +169,14 @@ while running:
 
     # Blit the surface onto the screen
     screen.blit(box, surface_rect)
+    screen.blit(imgs[imgindex], img_rect)
+
+    i = 0
+    for img in smallImgs:
+        screen.blit(img, rects[i])
+        if i == imgindex:
+            pygame.draw.rect(screen, (0, 255, 0), modRect(rects[i], -6), 3)
+        i += 1
 
     # Update the display
     pygame.display.flip()
