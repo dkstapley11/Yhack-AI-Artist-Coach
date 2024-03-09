@@ -15,6 +15,8 @@ transform = transforms.Compose([
 
 class_names = main()
 
+image_path = f'{os.getcwd()}/output.png'
+
 
 def main():
     
