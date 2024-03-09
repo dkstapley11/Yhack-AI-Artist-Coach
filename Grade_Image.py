@@ -13,7 +13,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-image_path = f'{os.getcwd()}/output.png'
+image_path = f'{os.getcwd()}\\output.png'
 
 
 

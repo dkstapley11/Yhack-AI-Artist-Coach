@@ -34,7 +34,7 @@ screen_rect = pygame.Rect((0, 0), (screen_width, screen_height))
 
 # Set the dimensions and psosition of the exit button
 square_size = 25
-square_rect = pygame.Rect(screen_width - square_size, 0, square_size, square_size)
+square_rect = pygame.Rect(screen_width - square_size - 3, 3, square_size, square_size)
 
 # Clock for controlling frame rate
 clock = pygame.time.Clock()
@@ -106,9 +106,59 @@ def draw_smooth_line(surface, prev_pos, actual_pos):
 def modRect(rect, x):
     return rect[0] + x, rect[1] + x, rect[2] - x * 2, rect[3] - x * 2
 
+def inRect(rect, coord):
+    x, y = coord
+    return rect[0] <= x <= rect[0] + rect[2] and rect[1] <= y <= rect[1] + rect[3]
+
 ssr = modRect(square_rect, 3)
 ssr = ssr[0], ssr[1], ssr[2] - 1, ssr[3] - 1
 xLines = ((ssr[0], ssr[1]), (ssr[0] + ssr[2], ssr[1] + ssr[3])), ((ssr[0] + ssr[2], ssr[1]), (ssr[0], ssr[1] + ssr[3]))
+font14px = pygame.font.Font("freesansbold.ttf", 14)
+font24px = pygame.font.Font("freesansbold.ttf", 24)
+
+
+
+class Button:
+    def __init__(self, rect, inColor, outColor, text, w=4):
+        self.rect = rect
+        self.inColor = inColor
+        self.outColor = outColor
+        self.text = font24px.render(text, True, outColor)
+        self.w = w
+        self.action = None
+    
+    def update(self):
+        pygame.draw.rect(screen, self.inColor, self.rect)
+        offset = (self.rect[2] - self.text.get_width()) // 2, (self.rect[3] - self.text.get_height()) // 2
+        screen.blit(self.text, (self.rect[0] + offset[0], self.rect[1] + offset[1]))
+        pygame.draw.rect(screen, self.outColor, self.rect, self.w)
+    
+    def set_action(self, action):
+        self.action = action
+    
+    def do(self):
+        self.action()
+    
+    def get_pressed(self, pos):
+        return inRect(self.rect, pos)
+
+resetRect = (surface_rect[0], surface_rect[1] + surface_rect[3] + padding, 100, 40)
+reset = Button(resetRect, (120, 120, 255), (50, 50, 255), "RESET")
+w = 100
+runRect = (surface_rect[0] + surface_rect[2] - w, surface_rect[1] + surface_rect[3] + padding, 100, 40)
+run = Button(runRect, (255, 120, 120), (255, 45, 45), "RUN")
+
+import subprocess
+
+def runProgram():
+    pygame.image.save(box,'output.png')
+    subprocess.call(["python", "Grade_Image.py"])
+
+def clearImg():
+    box.fill(WHITE)
+
+reset.set_action(clearImg)
+run.set_action(runProgram)
 
 while running:
     # Event handling
@@ -131,12 +181,26 @@ while running:
                     running = False  # Exit the program
                     pygame.quit()
                     sys.exit()
+                else:
+                    i = 0
+                    for rect in rects:
+                        if inRect(rect, mouse_pos):
+                            imgindex = int(i)
+                        i += 1
+                
+                    if run.get_pressed(mouse_pos):
+                        run.do()
+                    elif reset.get_pressed(mouse_pos):
+                        reset.do()
+
         elif event.type == pygame.MOUSEWHEEL:
             imgindex -= event.y
             if imgindex < 0:
-                imgindex += 14
+                while imgindex < 0:
+                    imgindex += 14
             elif imgindex > 13:
-                imgindex -= 14
+                while imgindex > 13: 
+                    imgindex -= 14
         elif event.type == pygame.MOUSEBUTTONUP:
             # If mouse button is up, reset mouse_pos
             mouse_pos = ()
@@ -177,9 +241,13 @@ while running:
         if i == imgindex:
             pygame.draw.rect(screen, (0, 255, 0), modRect(rects[i], -6), 3)
         i += 1
+    
+    reset.update()
+    run.update()
 
     # Update the display
     pygame.display.flip()
 
     # Cap the frame rate
     clock.tick(FPS)
+
