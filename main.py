@@ -53,6 +53,7 @@ RED = (255, 0, 0)
 
 # Create fullscreen window
 screen = pygame.display.set_mode((1366, 768))
+pygame.display.set_caption("Artist Coach")
 screen_width = screen.get_width()
 screen_height = screen.get_height()
 
